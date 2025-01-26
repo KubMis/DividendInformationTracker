@@ -4,9 +4,14 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
+
+import java.util.stream.Stream;
+
 import io.github.cdimascio.dotenv.Dotenv;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
+
 
 @Service
 public class DataFetcherService {
@@ -15,43 +20,56 @@ public class DataFetcherService {
     private final String BASE_URL = "https://www.alphavantage.co";
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
-    public String GetDividendYieldForCompanyTicker(String CompanyTicker) throws IOException, InterruptedException {
+    private JSONObject SendGetRequest(String url) throws IOException, InterruptedException {
+
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL+"/query?function=OVERVIEW&symbol="+CompanyTicker+"&apikey="+API_KEY))
-                .GET()
-                .build();
-
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
-            if(response.statusCode() > 200){
-                return "There is a problem with external api";
-            }
-
-        JSONObject jsonObject = new JSONObject(response.body());
-
-        return jsonObject.optString("DividendYield", "N/A");
-    }
-
-    public String GetCurrentSharePriceForCompanyTicker(String CompanyTicker) throws IOException, InterruptedException {
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL+"/query?function=GLOBAL_QUOTE&symbol="+CompanyTicker+"&apikey="+API_KEY))
+                .uri(URI.create(BASE_URL +url+"&apikey="+API_KEY))
                 .GET()
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
         if(response.statusCode() > 200){
-            return "There is a problem with external api";
+            JSONObject.quote("There is a problem with external api");
         }
 
-        JSONObject jsonObject = new JSONObject(response.body());
         System.out.println(response.body());
+        return new JSONObject(response.body());
+    }
+
+    public String GetDividendYieldForCompanyTicker(String CompanyTicker) throws IOException, InterruptedException {
+        JSONObject jsonObject = this.SendGetRequest("/query?function=OVERVIEW&symbol="+CompanyTicker);
+
+        return jsonObject.optString("DividendYield", "N/A");
+    }
+
+    public String GetCurrentSharePriceForCompanyTicker(String CompanyTicker) throws IOException, InterruptedException {
+        JSONObject jsonObject = this.SendGetRequest("/query?function=GLOBAL_QUOTE&symbol="+CompanyTicker);
+
         return jsonObject.getJSONObject("Global Quote").getString("05. price");
     }
 
-    public Double CalculateDividendAmount(String CompanyTicker, int NumberOfShares) throws IOException, InterruptedException {
-        Double dividendYield = Double.parseDouble(this.GetDividendYieldForCompanyTicker(CompanyTicker));
-
-        return dividendYield*NumberOfShares;
+    public Float CalculateDividendAmount(String CompanyTicker, int NumberOfShares) throws IOException, InterruptedException {
+        float dividendYield = Float.parseFloat(this.GetDividendYieldForCompanyTicker(CompanyTicker));
+        float companySharePrice = Float.parseFloat(this.GetCurrentSharePriceForCompanyTicker(CompanyTicker));
+        return companySharePrice*dividendYield*NumberOfShares;
     }
+
+    public List<String> GetActiveTickers() throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL+"/query?function=LISTING_STATUS&apikey="+API_KEY))
+                .GET()
+                .build();
+
+        HttpResponse<Stream<String>> response = httpClient.send(request, HttpResponse.BodyHandlers.ofLines());
+
+        if(response.statusCode() > 200){
+            JSONObject.quote("There is a problem with external api");
+        }
+
+        return response.body().toList().stream()
+                .filter(line -> line.toUpperCase().contains("ACTIVE"))
+                .map(line -> line.substring(0, line.indexOf(',')))
+                .toList();
+        }
 }
