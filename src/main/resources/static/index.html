@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,12 +7,14 @@
 </head>
 <body>
 <h1>Welcome to Dividend Information Tracker</h1>
-<h2>Enter the stock symbol to get the dividend information</h2>
-<ul id="Stocks List">
 
-</ul>
-
-<div id="result"></div>
+<input id="search-input" placeholder="Enter stock ticker">
+<div id="result-container">
+    <div id="tickers"></div>
+    <div id="selected-tickers">
+        <div id="selected-tickers-header" aria-placeholder="Selected stocks"></div>
+    </div>
+</div>
+<button id="add-items" onclick="addTickersToSelectedTickers()">Add tickers to portfolio</button>
 <script src="scripts.js"></script>
 </body>
-</html>

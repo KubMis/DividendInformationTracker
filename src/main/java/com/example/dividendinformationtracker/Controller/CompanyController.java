@@ -1,6 +1,8 @@
 package com.example.dividendinformationtracker.Controller;
 import com.example.dividendinformationtracker.Service.DataFetcherService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,8 +33,9 @@ public class CompanyController {
     }
 
     @GetMapping("/getTickers")
-    public List<String> getTickers() throws IOException, InterruptedException {
-        return dataFetcherService.GetActiveTickers();
+    public ResponseEntity<List<String>> getTickers() throws IOException, InterruptedException {
+        List<String> tickers = dataFetcherService.GetActiveTickers();
+        return new ResponseEntity<>(tickers, HttpStatus.OK);
     }
 }
 

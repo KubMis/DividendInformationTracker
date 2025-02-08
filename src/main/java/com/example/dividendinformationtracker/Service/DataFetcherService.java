@@ -5,13 +5,13 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
-
 import java.util.stream.Stream;
-
+import com.example.dividendinformationtracker.Model.Ticker;
+import com.example.dividendinformationtracker.Repository.TickerRepository;
 import io.github.cdimascio.dotenv.Dotenv;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 
 @Service
 public class DataFetcherService {
@@ -19,17 +19,19 @@ public class DataFetcherService {
     private final String API_KEY = dotenv.get("API_KEY");
     private final String BASE_URL = "https://www.alphavantage.co";
     private final HttpClient httpClient = HttpClient.newHttpClient();
+    @Autowired
+    private TickerRepository tickerRepository;
 
     private JSONObject SendGetRequest(String url) throws IOException, InterruptedException {
 
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL +url+"&apikey="+API_KEY))
+                .uri(URI.create(BASE_URL + url + "&apikey=" + API_KEY))
                 .GET()
                 .build();
 
         HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-        if(response.statusCode() > 200){
+        if (response.statusCode() > 200) {
             JSONObject.quote("There is a problem with external api");
         }
 
@@ -38,13 +40,13 @@ public class DataFetcherService {
     }
 
     public String GetDividendYieldForCompanyTicker(String CompanyTicker) throws IOException, InterruptedException {
-        JSONObject jsonObject = this.SendGetRequest("/query?function=OVERVIEW&symbol="+CompanyTicker);
+        JSONObject jsonObject = this.SendGetRequest("/query?function=OVERVIEW&symbol=" + CompanyTicker);
 
         return jsonObject.optString("DividendYield", "N/A");
     }
 
     public String GetCurrentSharePriceForCompanyTicker(String CompanyTicker) throws IOException, InterruptedException {
-        JSONObject jsonObject = this.SendGetRequest("/query?function=GLOBAL_QUOTE&symbol="+CompanyTicker);
+        JSONObject jsonObject = this.SendGetRequest("/query?function=GLOBAL_QUOTE&symbol=" + CompanyTicker);
 
         return jsonObject.getJSONObject("Global Quote").getString("05. price");
     }
@@ -52,24 +54,40 @@ public class DataFetcherService {
     public Float CalculateDividendAmount(String CompanyTicker, int NumberOfShares) throws IOException, InterruptedException {
         float dividendYield = Float.parseFloat(this.GetDividendYieldForCompanyTicker(CompanyTicker));
         float companySharePrice = Float.parseFloat(this.GetCurrentSharePriceForCompanyTicker(CompanyTicker));
-        return companySharePrice*dividendYield*NumberOfShares;
+        return companySharePrice * dividendYield * NumberOfShares;
     }
 
-    public List<String> GetActiveTickers() throws IOException, InterruptedException {
+    public void SaveActiveTickersToDb() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(BASE_URL+"/query?function=LISTING_STATUS&apikey="+API_KEY))
+                .uri(URI.create(BASE_URL + "/query?function=LISTING_STATUS&apikey=" + API_KEY))
                 .GET()
                 .build();
 
         HttpResponse<Stream<String>> response = httpClient.send(request, HttpResponse.BodyHandlers.ofLines());
 
-        if(response.statusCode() > 200){
-            JSONObject.quote("There is a problem with external api");
-        }
+        System.out.println(response.statusCode());
 
-        return response.body().toList().stream()
-                .filter(line -> line.toUpperCase().contains("ACTIVE"))
-                .map(line -> line.substring(0, line.indexOf(',')))
-                .toList();
+        List<String> lines = response.body().toList();
+
+        if (response.statusCode() > 200 || lines.isEmpty()) {
+            System.out.println("There is a problem with external api");
+        } else {
+            lines.stream()
+                    .filter(line -> line.toUpperCase().contains("ACTIVE"))
+                    .map(line -> line.substring(0, line.indexOf(',')))
+                    .forEach(tickerSymbol -> {
+                        if (tickerRepository.findByTicker(tickerSymbol) == null || !tickerRepository.findByTicker(tickerSymbol).getTicker().equals(tickerSymbol)) {
+                            Ticker ticker = new Ticker();
+                            ticker.setTicker(tickerSymbol);
+                            tickerRepository.save(ticker);
+                            System.out.println("Added ticker " + tickerSymbol + " to db");
+                        }
+                    });
         }
+    }
+
+    public List<String> GetActiveTickers() {
+        List<Ticker> tickers = tickerRepository.findAll();
+        return tickers.stream().map(Ticker::getTicker).toList();
+    }
 }

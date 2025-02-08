@@ -11,16 +11,62 @@ body {
 }
 
 h1 {
+    width: 100%;
+    text-align: center;
     color: #333;
 }
 
-button {
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
+#search-input {
+    max-width: 100px;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #254a1b;
+    border-radius: 5px;
 }
 
-#result {
-    margin-top: 20px;
-    font-size: 18px;
+#tickers {
+    overflow-y: auto;
+    border: 1px solid #254a1b;
+    max-height: 200px !important;
+    max-width: 100px !important;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+#tickers div {
+    display: flex;
+    cursor: pointer;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#tickers div.selected {
+    background-color: #60e102;
+    border-color: #007bff;
+    font-weight: bold;
+}
+
+#selected-tickers {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+#selected-tickers div {
+    overflow-y: auto;
+    border: 1px solid #254a1b;
+    max-height: 200px !important;
+    max-width: 100px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+#result-container {
+    display: flex;
+    gap: 20px;
 }
