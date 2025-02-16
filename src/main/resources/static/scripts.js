@@ -20,30 +20,23 @@ function getAllTickers(){
 }
 
 function addTickersToSelectedTickers(){
-    selectedTickers.forEach(ticker => {
-            const tickerInTickers = document.getElementById(ticker + " selected");
-            if(tickerInTickers) tickerInTickers.remove();
-            if(!document.getElementById(ticker+" not-selected")){
-            const tickerElement = createTickerElement(ticker, " not-selected");
-            document.getElementById('selected-tickers-list').appendChild(tickerElement);
-        }
-    });
-    Array.from(document.getElementsByClassName('selected')).forEach(element => {
-        element.classList.remove('selected');
-    });
-    selectedTickers = [];
+    doActionOnSelectedDivs(" selected", " not-selected", "selected-tickers-list");
 }
 
 function removeTickersFromSelectedTickers(){
-    selectedTickers.forEach(ticker => {
-        const tickerInTickers = document.getElementById(ticker + " not-selected");
-            if(tickerInTickers) tickerInTickers.remove();
+    doActionOnSelectedDivs(" not-selected", " selected", "tickers");
+}
 
-            if (!document.getElementById(ticker+" selected")) {
-                const tickerElement = createTickerElement(ticker, " selected");
-                document.getElementById('tickers').appendChild(tickerElement);
-                sortDivsInAlphabeticalOrder('tickers');
-            }
+function doActionOnSelectedDivs(selector, selector2, selector3){
+    selectedTickers.forEach(ticker => {
+        const tickerInTickers = document.getElementById(ticker + selector);
+        if(tickerInTickers) tickerInTickers.remove();
+
+        if (!document.getElementById(ticker+selector2)) {
+            const tickerElement = createTickerElement(ticker, selector2);
+            document.getElementById(selector3).appendChild(tickerElement);
+            sortDivsInAlphabeticalOrder('tickers');
+        }
 
     });
     Array.from(document.getElementsByClassName('selected')).forEach(element => {
