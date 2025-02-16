@@ -83,6 +83,7 @@ public class DataFetcherService {
                             System.out.println("Added ticker " + tickerSymbol + " to db");
                         }
                     });
+            System.out.println("All active tickers saved to db");
         }
     }
 
