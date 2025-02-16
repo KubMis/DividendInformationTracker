@@ -11,10 +11,12 @@
 <input id="search-input" placeholder="Enter stock ticker">
 <div id="result-container">
     <div id="tickers"></div>
-    <div id="selected-tickers">
-        <div id="selected-tickers-header" aria-placeholder="Selected stocks"></div>
-    </div>
+    <div id="selected-tickers-list"></div>
 </div>
-<button id="add-items" onclick="addTickersToSelectedTickers()">Add tickers to portfolio</button>
+<div id="buttons-container">
+    <button id="add-items" onclick="addTickersToSelectedTickers()">Add tickers to portfolio</button>
+    <button id="clear-items" onclick="removeTickersFromSelectedTickers()">Remove selected tickers from portfolio</button>
+    <button id="save-items" >Save portfolio</button>
+</div>
 <script src="scripts.js"></script>
 </body>
