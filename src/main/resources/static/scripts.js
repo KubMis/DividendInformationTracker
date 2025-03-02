@@ -64,6 +64,36 @@ function createTickerElement(ticker, selected){
     return tickerElement;
 }
 
+function getTextFromInput(inputId){
+    const innerText= document.getElementById(inputId).value;
+    console.log(innerText)
+    return innerText
+}
+
+function saveSelectedTickers(portfolioName){
+    const tickersInSelectedDiv = Array.from(document.getElementById('selected-tickers-list').children)
+        .map(element => element.innerText);
+    console.log("portfolio name ins save function")
+    console.log(portfolioName)
+    if(portfolioName==null || portfolioName===""){
+        console.error("Portfolio name must not be empty")
+        return;
+    }
+       fetch("api/createPortfolio", {
+           method: "Post",
+           body: JSON.stringify({
+               "portfolioName": portfolioName,
+               "stocks": tickersInSelectedDiv
+           }),
+           headers: {"Content-type": "application/json; charset=UTF-8"}
+       }).then((response)=>{
+           if (!response.ok) {
+               throw new Error('Network response was not ok');
+           }
+           return response.json();
+       })
+}
+
 function sortDivsInAlphabeticalOrder(selector){
     const tickers = document.getElementById(selector);
     const tickerElements = Array.from(tickers.children);
