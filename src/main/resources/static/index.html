@@ -8,15 +8,20 @@
 <body>
 <h1>Welcome to Dividend Information Tracker</h1>
 
-<input id="search-input" placeholder="Enter stock ticker">
+<input id="search-input" type="text"  placeholder="Enter stock ticker">
+
 <div id="result-container">
     <div id="tickers"></div>
     <div id="selected-tickers-list"></div>
 </div>
+
+<input id="portfolio-name" type="text"  placeholder="Enter portfolio name" >
+
 <div id="buttons-container">
     <button id="add-items" onclick="addTickersToSelectedTickers()">Add tickers to portfolio</button>
     <button id="clear-items" onclick="removeTickersFromSelectedTickers()">Remove selected tickers from portfolio</button>
-    <button id="save-items" >Save portfolio</button>
+    <button id="save-items" onclick="saveSelectedTickers( getTextFromInput('portfolio-name') )" >Save portfolio</button>
 </div>
+
 <script src="scripts.js"></script>
 </body>
